@@ -12,7 +12,7 @@ class KazenovaAVecChangeSignPerfTest
 protected:
   void SetUp() override {
     auto params = GetParam();
-    int vector_size = 1000000;
+    int vector_size = 100000000;
     input_data_.resize(vector_size);
     for (int i = 0; i < vector_size; i++) {
       input_data_[i] = (i % 2 == 0) ? 1 : -1;
