@@ -52,8 +52,10 @@ protected:
   bool CheckTestOutputData(OutType &output_data) final {
     int expected = 0;
     for (size_t i = 1; i < input_data_.size(); i++) {
-      if ((input_data_[i] > 0 && input_data_[i - 1] < 0) ||
-          (input_data_[i] < 0 && input_data_[i - 1] > 0)) {
+      bool prev_pos =
+          (input_data_[i - 1] >= 0); // Ноль считается положительным!
+      bool curr_pos = (input_data_[i] >= 0); // Ноль считается положительным!
+      if (prev_pos != curr_pos) {
         expected++;
       }
     }

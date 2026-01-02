@@ -25,8 +25,8 @@ bool KazenovaAVecChangeSignSEQ::RunImpl() {
   int change_count = 0;
 
   for (size_t i = 1; i < input_vec.size(); i++) {
-    if ((input_vec[i] > 0 && input_vec[i - 1] < 0) ||
-        (input_vec[i] < 0 && input_vec[i - 1] > 0)) {
+    if ((input_vec[i] >= 0 && input_vec[i - 1] < 0) ||
+        (input_vec[i] < 0 && input_vec[i - 1] >= 0)) {
       change_count++;
     }
   }
