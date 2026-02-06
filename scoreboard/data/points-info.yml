@@ -10,6 +10,8 @@ processes:
       R: 2
       variants_max: 27
       Total: 12
+      # Task 1: all variants are category A (simple array operations)
+      perf_category: A
     - name: mpi_task_2
       mpi:
         - S: 12
@@ -19,6 +21,14 @@ processes:
       R: 3
       variants_max: 23
       Total: 23
+      # Task 2 variant categories:
+      # C: 1-10 (collective ops + topologies)
+      # B: 11-21 (matrix computations, Gauss, iterative methods, sort)
+      # A: 22-23 (image processing)
+      perf_category_by_variant:
+        default: B
+        A: [22, 23]
+        C: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     - name: mpi_task_3
       mpi:
         - S: 16
@@ -28,6 +38,14 @@ processes:
       R: 5
       variants_max: 32
       Total: 35
+      # Task 3 variant categories:
+      # A: 1-3 (Cannon/Fox/Strassen), 10 (Monte Carlo), 26-30 (image processing)
+      # B: 4-9, 12, 14-21, 23-25, 31-32 (most algorithms)
+      # C: 11, 13 (Strongin), 22 (Dijkstra)
+      perf_category_by_variant:
+        default: B
+        A: [1, 2, 3, 10, 26, 27, 28, 29, 30]
+        C: [11, 13, 22]
 threads:
   semester_total: 64
   variants_max: 30
@@ -58,6 +76,40 @@ threads:
       Total: 21
 efficiency:
   num_proc: 4
+  # Performance category scales (efficiency % -> points %)
+  # Category A: easily scalable tasks (>=50% = 100%)
+  # Category B: moderately scalable tasks (>=40% = 100%)
+  # Category C: communication-bound/sequential tasks (>=30% = 100%)
+  scales:
+    A:
+      - [50, 100]
+      - [45, 90]
+      - [42, 80]
+      - [40, 70]
+      - [37, 60]
+      - [35, 50]
+      - [32, 40]
+      - [30, 30]
+      - [27, 20]
+      - [25, 10]
+      - [0, 0]
+    B:
+      - [40, 100]
+      - [35, 90]
+      - [30, 80]
+      - [27, 70]
+      - [25, 60]
+      - [20, 40]
+      - [15, 20]
+      - [0, 0]
+    C:
+      - [30, 100]
+      - [25, 90]
+      - [20, 75]
+      - [15, 50]
+      - [10, 30]
+      - [5, 10]
+      - [0, 0]
 copying:
   coefficient: 0.5
   note: "Penalty C = -coefficient * S (scoreboard notation)"

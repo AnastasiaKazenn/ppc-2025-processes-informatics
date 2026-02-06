@@ -21,9 +21,18 @@ file(
   GLOB subdirs
   RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
   "${CMAKE_CURRENT_SOURCE_DIR}/*")
+# Filter out non-task directories
+set(task_dirs)
 foreach(sub IN LISTS subdirs)
-  if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${sub}" AND NOT sub STREQUAL
-                                                           "common")
-    ppc_configure_subproject(${sub})
+  if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${sub}" AND NOT sub STREQUAL "common")
+    list(APPEND task_dirs ${sub})
   endif()
+endforeach()
+
+# Use single-task libraries for all platforms
+message(STATUS "Using single-task library system (${CMAKE_CXX_COMPILER_ID})")
+
+# Configure each task as separate library
+foreach(sub IN LISTS task_dirs)
+  ppc_configure_single_subproject(${sub})
 endforeach()

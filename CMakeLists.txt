@@ -7,6 +7,10 @@ endif()
 message( STATUS "Parallel Programming Course (PPC)" )
 project(parallel_programming_course)
 
+if(WIN32)
+    set(CMAKE_NINJA_FORCE_RESPONSE_FILE ON CACHE BOOL "Force Ninja to use response files.")
+endif()
+
 ############################ Scoreboard #############################
 
 message( STATUS "PPC step: Setup scoreboard generator" )
