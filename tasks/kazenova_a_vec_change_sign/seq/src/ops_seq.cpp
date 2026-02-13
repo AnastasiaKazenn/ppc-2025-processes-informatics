@@ -1,10 +1,9 @@
 #include "kazenova_a_vec_change_sign/seq/include/ops_seq.hpp"
 
-#include <numeric>
 #include <vector>
+#include <cstddef>
 
 #include "kazenova_a_vec_change_sign/common/include/common.hpp"
-#include "util/include/util.hpp"
 
 namespace kazenova_a_vec_change_sign {
 

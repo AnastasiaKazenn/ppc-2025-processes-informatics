@@ -1,16 +1,9 @@
 #include <gtest/gtest.h>
 #include <stb/stb_image.h>
 
-#include <algorithm>
 #include <array>
-#include <cstddef>
-#include <cstdint>
-#include <numeric>
-#include <stdexcept>
 #include <string>
 #include <tuple>
-#include <utility>
-#include <vector>
 
 #include "kazenova_a_vec_change_sign/common/include/common.hpp"
 #include "kazenova_a_vec_change_sign/mpi/include/ops_mpi.hpp"

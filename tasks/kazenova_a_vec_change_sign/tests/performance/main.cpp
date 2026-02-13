@@ -11,7 +11,7 @@ class KazenovaAVecChangeSignPerfTest
     : public ppc::util::BaseRunPerfTests<InType, OutType> {
 protected:
   void SetUp() override {
-    auto params = GetParam();
+    const auto& params = GetParam();
     int vector_size = 100000000;
     input_data_.resize(vector_size);
     for (int i = 0; i < vector_size; i++) {
@@ -19,7 +19,7 @@ protected:
     }
   }
   bool CheckTestOutputData(OutType &output_data) final {
-    int max_possible = input_data_.size() - 1;
+    size_t max_possible = input_data_.size() - 1;
     return output_data >= 0 && output_data <= max_possible;
   }
 

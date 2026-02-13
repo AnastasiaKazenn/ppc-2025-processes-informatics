@@ -3,11 +3,9 @@
 #include <mpi.h>
 
 #include <algorithm>
-#include <numeric>
 #include <vector>
 
 #include "kazenova_a_vec_change_sign/common/include/common.hpp"
-#include "util/include/util.hpp"
 
 namespace kazenova_a_vec_change_sign {
 
@@ -25,7 +23,7 @@ bool KazenovaAVecChangeSignMPI::PreProcessingImpl() { return true; }
 
 bool KazenovaAVecChangeSignMPI::RunImpl() {
   const auto &input_vec = GetInput();
-  int world_size, world_rank;
+  int world_size = 0, world_rank = 0;
 
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
@@ -38,8 +36,9 @@ bool KazenovaAVecChangeSignMPI::RunImpl() {
       for (int i = 1; i < total_size; i++) {
         bool prev_pos = (input_vec[i - 1] >= 0);
         bool curr_pos = (input_vec[i] >= 0);
-        if (prev_pos != curr_pos)
+        if (prev_pos != curr_pos){
           count++;
+        }
       }
       GetOutput() = count;
     }
@@ -50,7 +49,7 @@ bool KazenovaAVecChangeSignMPI::RunImpl() {
   int chunk_size = total_size / world_size;
   int remainder = total_size % world_size;
 
-  int start_idx = world_rank * chunk_size + std::min(world_rank, remainder);
+  int start_idx = (world_rank * chunk_size) + std::min(world_rank, remainder);
   int end_idx = start_idx + chunk_size + (world_rank < remainder ? 1 : 0);
 
   int local_count = 0;
