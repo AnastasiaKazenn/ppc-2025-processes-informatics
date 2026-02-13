@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <utility>
 
 #include "kazenova_a_vec_change_sign/common/include/common.hpp"
 #include "kazenova_a_vec_change_sign/mpi/include/ops_mpi.hpp"
@@ -20,7 +21,7 @@ class KazenovaAVecChangeSignPerfTest : public ppc::util::BaseRunPerfTests<InType
   }
   bool CheckTestOutputData(OutType &output_data) final {
     size_t max_possible = input_data_.size() - 1;
-    return output_data >= 0 && output_data <= static_cast<int>(max_possible);
+    return output_data >= 0 && std::cmp_less_equal(output_data, max_possible);
   }
 
   InType GetTestInputData() final {
