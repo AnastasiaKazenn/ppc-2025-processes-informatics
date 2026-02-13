@@ -1,7 +1,7 @@
 #include "kazenova_a_vec_change_sign/seq/include/ops_seq.hpp"
 
-#include <vector>
 #include <cstddef>
+#include <vector>
 
 #include "kazenova_a_vec_change_sign/common/include/common.hpp"
 

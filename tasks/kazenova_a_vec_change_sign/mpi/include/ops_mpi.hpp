@@ -17,6 +17,12 @@ private:
   bool PreProcessingImpl() override;
   bool RunImpl() override;
   bool PostProcessingImpl() override;
+
+  void ProcessSmallVector(int world_rank, int total_size);
+  void ComputeChunkBounds(int world_rank, int world_size, int total_size, 
+                          int& start_idx, int& end_idx);
+  int CountLocalChanges(int start_idx, int end_idx);
+  int CheckBoundary(int world_rank, int world_size, int end_idx, int total_size);
 };
 
 } // namespace kazenova_a_vec_change_sign
