@@ -13,4 +13,4 @@ using OutType = int;
 using TestType = std::tuple<int, std::string>;
 using BaseTask = ppc::task::Task<InType, OutType>;
 
-} // namespace kazenova_a_vec_change_sign
+}  // namespace kazenova_a_vec_change_sign

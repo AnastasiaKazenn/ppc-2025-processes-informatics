@@ -6,17 +6,17 @@
 namespace kazenova_a_vec_change_sign {
 
 class KazenovaAVecChangeSignSEQ : public BaseTask {
-public:
+ public:
   static constexpr ppc::task::TypeOfTask GetStaticTypeOfTask() {
     return ppc::task::TypeOfTask::kSEQ;
   }
   explicit KazenovaAVecChangeSignSEQ(const InType &in);
 
-private:
+ private:
   bool ValidationImpl() override;
   bool PreProcessingImpl() override;
   bool RunImpl() override;
   bool PostProcessingImpl() override;
 };
 
-} // namespace kazenova_a_vec_change_sign
+}  // namespace kazenova_a_vec_change_sign

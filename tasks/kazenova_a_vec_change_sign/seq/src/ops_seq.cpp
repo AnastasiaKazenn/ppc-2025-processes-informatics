@@ -17,15 +17,16 @@ bool KazenovaAVecChangeSignSEQ::ValidationImpl() {
   return (!GetInput().empty()) && (GetOutput() == 0);
 }
 
-bool KazenovaAVecChangeSignSEQ::PreProcessingImpl() { return true; }
+bool KazenovaAVecChangeSignSEQ::PreProcessingImpl() {
+  return true;
+}
 
 bool KazenovaAVecChangeSignSEQ::RunImpl() {
   const auto &input_vec = GetInput();
   int change_count = 0;
 
   for (size_t i = 1; i < input_vec.size(); i++) {
-    if ((input_vec[i] >= 0 && input_vec[i - 1] < 0) ||
-        (input_vec[i] < 0 && input_vec[i - 1] >= 0)) {
+    if ((input_vec[i] >= 0 && input_vec[i - 1] < 0) || (input_vec[i] < 0 && input_vec[i - 1] >= 0)) {
       change_count++;
     }
   }
@@ -34,6 +35,8 @@ bool KazenovaAVecChangeSignSEQ::RunImpl() {
   return true;
 }
 
-bool KazenovaAVecChangeSignSEQ::PostProcessingImpl() { return true; }
+bool KazenovaAVecChangeSignSEQ::PostProcessingImpl() {
+  return true;
+}
 
-} // namespace kazenova_a_vec_change_sign
+}  // namespace kazenova_a_vec_change_sign
