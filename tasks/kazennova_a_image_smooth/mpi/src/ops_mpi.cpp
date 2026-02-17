@@ -77,7 +77,6 @@ uint8_t KazennovaAImageSmoothMPI::ApplyKernelToPixel(int local_y, int x, int c) 
 void KazennovaAImageSmoothMPI::ApplyKernelToStrip() {
   auto &out = GetOutput();
   const auto &in = GetInput();
-  int row_size = in.width * in.channels;
 
   for (int y = 0; y < strip_height_; ++y) {
     int global_y = strip_offset_ + y;
@@ -103,7 +102,6 @@ void KazennovaAImageSmoothMPI::ExchangeBoundaries() {
   }
 
   int row_size = in.width * in.channels;
-  int local_height = strip_height_ + 2;
 
   if (world_rank > 0) {
     MPI_Sendrecv(local_strip_.data() + row_size, row_size, MPI_BYTE, world_rank - 1, 0, local_strip_.data(), row_size,
