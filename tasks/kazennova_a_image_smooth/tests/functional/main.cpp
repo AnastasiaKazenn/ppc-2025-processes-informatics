@@ -2,7 +2,6 @@
 
 #include <array>
 #include <cstddef>
-#include <cstdio>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -11,6 +10,7 @@
 #include "kazennova_a_image_smooth/mpi/include/ops_mpi.hpp"
 #include "kazennova_a_image_smooth/seq/include/ops_seq.hpp"
 #include "util/include/func_test_util.hpp"
+#include "util/include/util.hpp"  // для GTestParamIndex
 
 namespace kazennova_a_image_smooth {
 
@@ -35,7 +35,6 @@ class ImageSmoothFuncTest : public ppc::util::BaseRunFuncTests<InType, OutType, 
   bool CheckTestOutputData(OutType &output_data) final {
     if (output_data.width != input_data_.width || output_data.height != input_data_.height ||
         output_data.channels != input_data_.channels || output_data.data.size() != input_data_.data.size()) {
-      printf("Size mismatch!\n");
       return false;
     }
 
@@ -46,12 +45,7 @@ class ImageSmoothFuncTest : public ppc::util::BaseRunFuncTests<InType, OutType, 
         break;
       }
     }
-
-    if (!changed) {
-      printf("WARNING: No pixels changed!\n");
-    }
-
-    return true;
+    return changed;
   }
 
   InType GetTestInputData() final {

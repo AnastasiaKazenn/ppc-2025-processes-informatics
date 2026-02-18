@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 
@@ -25,11 +26,11 @@ class KazennovaAImageSmoothMPI : public BaseTask {
   void ApplyKernelToStrip();
   void ExchangeBoundaries();
   void GatherResult();
-  uint8_t ApplyKernelToPixel(int x, int y, int c);
+  uint8_t ApplyKernelToPixel(int local_y, int x, int c);
 
   std::vector<uint8_t> local_strip_;
-  int strip_height_;
-  int strip_offset_;
+  int strip_height_ = 0;
+  int strip_offset_ = 0;
 };
 
 }  // namespace kazennova_a_image_smooth

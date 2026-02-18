@@ -1,6 +1,7 @@
 #include "kazennova_a_image_smooth/seq/include/ops_seq.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <vector>
@@ -9,8 +10,8 @@
 
 namespace kazennova_a_image_smooth {
 
-const float kernel[3][3] = {
-    {1.0F / 16, 2.0F / 16, 1.0F / 16}, {2.0F / 16, 4.0F / 16, 2.0F / 16}, {1.0F / 16, 2.0F / 16, 1.0F / 16}};
+const std::array<std::array<float, 3>, 3> kernel = {
+    {{{1.0F / 16, 2.0F / 16, 1.0F / 16}}, {{2.0F / 16, 4.0F / 16, 2.0F / 16}}, {{1.0F / 16, 2.0F / 16, 1.0F / 16}}}};
 
 KazennovaAImageSmoothSEQ::KazennovaAImageSmoothSEQ(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
@@ -38,7 +39,7 @@ uint8_t KazennovaAImageSmoothSEQ::ApplyKernelToPixel(int x, int y, int c) {
       int ny = std::clamp(y + ky, 0, in.height - 1);
 
       int idx = ((ny * in.width + nx) * in.channels) + c;
-      sum += in.data[idx] * kernel[ky + 1][kx + 1];
+      sum += static_cast<float>(in.data[idx]) * kernel[ky + 1][kx + 1];
     }
   }
 
@@ -54,11 +55,11 @@ bool KazennovaAImageSmoothSEQ::RunImpl() {
   out.channels = in.channels;
   out.data.resize(in.data.size());
 
-  for (int y = 0; y < in.height; ++y) {
-    for (int x = 0; x < in.width; ++x) {
-      for (int c = 0; c < in.channels; ++c) {
-        int idx = ((y * in.width + x) * in.channels) + c;
-        out.data[idx] = ApplyKernelToPixel(x, y, c);
+  for (int row = 0; row < in.height; ++row) {
+    for (int col = 0; col < in.width; ++col) {
+      for (int ch = 0; ch < in.channels; ++ch) {
+        int idx = ((row * in.width + col) * in.channels) + ch;
+        out.data[idx] = ApplyKernelToPixel(col, row, ch);
       }
     }
   }

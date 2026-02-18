@@ -3,7 +3,9 @@
 #include <mpi.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 
@@ -11,8 +13,8 @@
 
 namespace kazennova_a_image_smooth {
 
-const float kernel[3][3] = {
-    {1.0F / 16, 2.0F / 16, 1.0F / 16}, {2.0F / 16, 4.0F / 16, 2.0F / 16}, {1.0F / 16, 2.0F / 16, 1.0F / 16}};
+const std::array<std::array<float, 3>, 3> kernel = {
+    {{{1.0F / 16, 2.0F / 16, 1.0F / 16}}, {{2.0F / 16, 4.0F / 16, 2.0F / 16}}, {{1.0F / 16, 2.0F / 16, 1.0F / 16}}}};
 
 KazennovaAImageSmoothMPI::KazennovaAImageSmoothMPI(const InType &in) : strip_height_(0), strip_offset_(0) {
   SetTypeOfTask(GetStaticTypeOfTask());
@@ -48,10 +50,10 @@ void KazennovaAImageSmoothMPI::DistributeImage() {
 
   std::fill(local_strip_.begin(), local_strip_.end(), 0);
 
-  for (int y = 0; y < strip_height_; ++y) {
-    int global_y = strip_offset_ + y;
+  for (int row = 0; row < strip_height_; ++row) {
+    int global_y = strip_offset_ + row;
     int src_offset = global_y * row_size;
-    int dst_offset = (y + 1) * row_size;
+    int dst_offset = (row + 1) * row_size;
 
     std::copy(in.data.begin() + src_offset, in.data.begin() + src_offset + row_size, local_strip_.begin() + dst_offset);
   }
@@ -69,7 +71,7 @@ uint8_t KazennovaAImageSmoothMPI::ApplyKernelToPixel(int local_y, int x, int c) 
       int ny_local = std::clamp(local_y + ky, 0, local_height - 1);
 
       int idx = (ny_local * row_size) + (nx * in.channels) + c;
-      sum += local_strip_[idx] * kernel[ky + 1][kx + 1];
+      sum += static_cast<float>(local_strip_[idx]) * kernel[ky + 1][kx + 1];
     }
   }
 
@@ -80,15 +82,14 @@ void KazennovaAImageSmoothMPI::ApplyKernelToStrip() {
   auto &out = GetOutput();
   const auto &in = GetInput();
 
-  for (int y = 0; y < strip_height_; ++y) {
-    int global_y = strip_offset_ + y;
-    int local_y = y + 1;
+  for (int row = 0; row < strip_height_; ++row) {
+    int global_y = strip_offset_ + row;
+    int local_y = row + 1;
 
-    for (int x = 0; x < in.width; ++x) {
-      for (int c = 0; c < in.channels; ++c) {
-        // Добавлены скобки для ясности приоритета операций
-        int out_idx = ((global_y * in.width + x) * in.channels) + c;
-        out.data[out_idx] = ApplyKernelToPixel(local_y, x, c);
+    for (int col = 0; col < in.width; ++col) {
+      for (int ch = 0; ch < in.channels; ++ch) {
+        int out_idx = ((global_y * in.width + col) * in.channels) + ch;
+        out.data[out_idx] = ApplyKernelToPixel(local_y, col, ch);
       }
     }
   }
@@ -96,8 +97,8 @@ void KazennovaAImageSmoothMPI::ApplyKernelToStrip() {
 
 void KazennovaAImageSmoothMPI::ExchangeBoundaries() {
   const auto &in = GetInput();
-  int world_size = 0;  // Инициализировано
-  int world_rank = 0;  // Инициализировано
+  int world_size = 0;
+  int world_rank = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
