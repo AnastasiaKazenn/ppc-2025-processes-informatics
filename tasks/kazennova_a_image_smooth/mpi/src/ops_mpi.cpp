@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
-#include <ranges>
 #include <vector>
 
 #include "kazennova_a_image_smooth/common/include/common.hpp"
@@ -71,7 +71,7 @@ uint8_t KazennovaAImageSmoothMPI::ApplyKernelToPixel(int local_y, int x, int c) 
       int ny_local = std::clamp(local_y + ky, 0, local_height - 1);
 
       int idx = (ny_local * row_size) + (nx * in.channels) + c;
-      sum += static_cast<float>(local_strip_[idx]) * kKernel[ky + 1][kx + 1];
+      sum += static_cast<float>(local_strip_[idx]) * kKernel[ky + 1][kx + 1];  // NOLINT
     }
   }
 

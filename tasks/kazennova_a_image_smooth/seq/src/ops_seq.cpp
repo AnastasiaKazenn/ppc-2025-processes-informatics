@@ -39,7 +39,7 @@ uint8_t KazennovaAImageSmoothSEQ::ApplyKernelToPixel(int x, int y, int c) {
       int ny = std::clamp(y + ky, 0, in.height - 1);
 
       int idx = ((ny * in.width + nx) * in.channels) + c;
-      sum += static_cast<float>(in.data[idx]) * kKernel[ky + 1][kx + 1];
+      sum += static_cast<float>(in.data[idx]) * kKernel[ky + 1][kx + 1];  // NOLINT
     }
   }
 
