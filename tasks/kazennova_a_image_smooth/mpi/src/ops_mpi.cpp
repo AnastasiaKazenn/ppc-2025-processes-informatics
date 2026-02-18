@@ -5,18 +5,18 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <cstddef>
 #include <cstdint>
+#include <ranges>
 #include <vector>
 
 #include "kazennova_a_image_smooth/common/include/common.hpp"
 
 namespace kazennova_a_image_smooth {
 
-const std::array<std::array<float, 3>, 3> kernel = {
+const std::array<std::array<float, 3>, 3> kKernel = {
     {{{1.0F / 16, 2.0F / 16, 1.0F / 16}}, {{2.0F / 16, 4.0F / 16, 2.0F / 16}}, {{1.0F / 16, 2.0F / 16, 1.0F / 16}}}};
 
-KazennovaAImageSmoothMPI::KazennovaAImageSmoothMPI(const InType &in) : strip_height_(0), strip_offset_(0) {
+KazennovaAImageSmoothMPI::KazennovaAImageSmoothMPI(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
   GetOutput() = in;
@@ -48,7 +48,7 @@ void KazennovaAImageSmoothMPI::DistributeImage() {
   int row_size = in.width * in.channels;
   local_strip_.resize(static_cast<size_t>(halo_strip_height) * static_cast<size_t>(row_size));
 
-  std::fill(local_strip_.begin(), local_strip_.end(), 0);
+  std::ranges::fill(local_strip_, 0);
 
   for (int row = 0; row < strip_height_; ++row) {
     int global_y = strip_offset_ + row;
@@ -71,7 +71,7 @@ uint8_t KazennovaAImageSmoothMPI::ApplyKernelToPixel(int local_y, int x, int c) 
       int ny_local = std::clamp(local_y + ky, 0, local_height - 1);
 
       int idx = (ny_local * row_size) + (nx * in.channels) + c;
-      sum += static_cast<float>(local_strip_[idx]) * kernel[ky + 1][kx + 1];
+      sum += static_cast<float>(local_strip_[idx]) * kKernel[ky + 1][kx + 1];
     }
   }
 
