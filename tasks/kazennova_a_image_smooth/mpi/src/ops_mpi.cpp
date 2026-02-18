@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <vector>
 
 #include "kazennova_a_image_smooth/common/include/common.hpp"
@@ -11,9 +12,9 @@
 namespace kazennova_a_image_smooth {
 
 const float kernel[3][3] = {
-    {1.0f / 16, 2.0f / 16, 1.0f / 16}, {2.0f / 16, 4.0f / 16, 2.0f / 16}, {1.0f / 16, 2.0f / 16, 1.0f / 16}};
+    {1.0F / 16, 2.0F / 16, 1.0F / 16}, {2.0F / 16, 4.0F / 16, 2.0F / 16}, {1.0F / 16, 2.0F / 16, 1.0F / 16}};
 
-KazennovaAImageSmoothMPI::KazennovaAImageSmoothMPI(const InType &in) {
+KazennovaAImageSmoothMPI::KazennovaAImageSmoothMPI(const InType &in) : strip_height_(0), strip_offset_(0) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
   GetOutput() = in;
@@ -30,7 +31,8 @@ bool KazennovaAImageSmoothMPI::PreProcessingImpl() {
 
 void KazennovaAImageSmoothMPI::DistributeImage() {
   const auto &in = GetInput();
-  int world_size, world_rank;
+  int world_size = 0;
+  int world_rank = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
@@ -38,11 +40,11 @@ void KazennovaAImageSmoothMPI::DistributeImage() {
   int remainder = in.height % world_size;
 
   strip_height_ = rows_per_proc + (world_rank < remainder ? 1 : 0);
-  strip_offset_ = world_rank * rows_per_proc + std::min(world_rank, remainder);
+  strip_offset_ = (world_rank * rows_per_proc) + std::min(world_rank, remainder);
 
   int halo_strip_height = strip_height_ + 2;
   int row_size = in.width * in.channels;
-  local_strip_.resize(halo_strip_height * row_size);
+  local_strip_.resize(static_cast<size_t>(halo_strip_height) * static_cast<size_t>(row_size));
 
   std::fill(local_strip_.begin(), local_strip_.end(), 0);
 
@@ -56,7 +58,7 @@ void KazennovaAImageSmoothMPI::DistributeImage() {
 }
 
 uint8_t KazennovaAImageSmoothMPI::ApplyKernelToPixel(int local_y, int x, int c) {
-  float sum = 0.0f;
+  float sum = 0.0F;
   const auto &in = GetInput();
   int row_size = in.width * in.channels;
   int local_height = strip_height_ + 2;
@@ -66,7 +68,7 @@ uint8_t KazennovaAImageSmoothMPI::ApplyKernelToPixel(int local_y, int x, int c) 
       int nx = std::clamp(x + kx, 0, in.width - 1);
       int ny_local = std::clamp(local_y + ky, 0, local_height - 1);
 
-      int idx = ny_local * row_size + nx * in.channels + c;
+      int idx = (ny_local * row_size) + (nx * in.channels) + c;
       sum += local_strip_[idx] * kernel[ky + 1][kx + 1];
     }
   }
@@ -84,7 +86,8 @@ void KazennovaAImageSmoothMPI::ApplyKernelToStrip() {
 
     for (int x = 0; x < in.width; ++x) {
       for (int c = 0; c < in.channels; ++c) {
-        int out_idx = (global_y * in.width + x) * in.channels + c;
+        // Добавлены скобки для ясности приоритета операций
+        int out_idx = ((global_y * in.width + x) * in.channels) + c;
         out.data[out_idx] = ApplyKernelToPixel(local_y, x, c);
       }
     }
@@ -93,11 +96,18 @@ void KazennovaAImageSmoothMPI::ApplyKernelToStrip() {
 
 void KazennovaAImageSmoothMPI::ExchangeBoundaries() {
   const auto &in = GetInput();
-  int world_size, world_rank;
+  int world_size = 0;  // Инициализировано
+  int world_rank = 0;  // Инициализировано
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
   if (world_size == 1) {
+    int row_size = in.width * in.channels;
+    std::copy(local_strip_.begin() + row_size, local_strip_.begin() + row_size + static_cast<ptrdiff_t>(row_size),
+              local_strip_.begin());
+    int last_data_row = strip_height_ * row_size;
+    std::copy(local_strip_.begin() + last_data_row - row_size, local_strip_.begin() + last_data_row,
+              local_strip_.begin() + last_data_row + row_size);
     return;
   }
 
@@ -107,7 +117,8 @@ void KazennovaAImageSmoothMPI::ExchangeBoundaries() {
     MPI_Sendrecv(local_strip_.data() + row_size, row_size, MPI_BYTE, world_rank - 1, 0, local_strip_.data(), row_size,
                  MPI_BYTE, world_rank - 1, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   } else {
-    std::copy(local_strip_.begin() + row_size, local_strip_.begin() + 2 * row_size, local_strip_.begin());
+    std::copy(local_strip_.begin() + row_size, local_strip_.begin() + row_size + static_cast<ptrdiff_t>(row_size),
+              local_strip_.begin());
   }
 
   if (world_rank < world_size - 1) {
@@ -125,7 +136,8 @@ void KazennovaAImageSmoothMPI::ExchangeBoundaries() {
 void KazennovaAImageSmoothMPI::GatherResult() {
   const auto &in = GetInput();
   auto &out = GetOutput();
-  int world_size, world_rank;
+  int world_size = 0;
+  int world_rank = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 

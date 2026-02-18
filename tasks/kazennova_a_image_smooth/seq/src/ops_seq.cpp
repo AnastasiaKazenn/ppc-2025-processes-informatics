@@ -1,6 +1,8 @@
 #include "kazennova_a_image_smooth/seq/include/ops_seq.hpp"
 
+#include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <vector>
 
 #include "kazennova_a_image_smooth/common/include/common.hpp"
@@ -8,7 +10,7 @@
 namespace kazennova_a_image_smooth {
 
 const float kernel[3][3] = {
-    {1.0f / 16, 2.0f / 16, 1.0f / 16}, {2.0f / 16, 4.0f / 16, 2.0f / 16}, {1.0f / 16, 2.0f / 16, 1.0f / 16}};
+    {1.0F / 16, 2.0F / 16, 1.0F / 16}, {2.0F / 16, 4.0F / 16, 2.0F / 16}, {1.0F / 16, 2.0F / 16, 1.0F / 16}};
 
 KazennovaAImageSmoothSEQ::KazennovaAImageSmoothSEQ(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
@@ -28,27 +30,14 @@ bool KazennovaAImageSmoothSEQ::PreProcessingImpl() {
 
 uint8_t KazennovaAImageSmoothSEQ::ApplyKernelToPixel(int x, int y, int c) {
   const auto &in = GetInput();
-  float sum = 0.0f;
+  float sum = 0.0F;
 
   for (int ky = -1; ky <= 1; ++ky) {
     for (int kx = -1; kx <= 1; ++kx) {
-      int nx = x + kx;
-      int ny = y + ky;
+      int nx = std::clamp(x + kx, 0, in.width - 1);
+      int ny = std::clamp(y + ky, 0, in.height - 1);
 
-      if (nx < 0) {
-        nx = 0;
-      }
-      if (nx >= in.width) {
-        nx = in.width - 1;
-      }
-      if (ny < 0) {
-        ny = 0;
-      }
-      if (ny >= in.height) {
-        ny = in.height - 1;
-      }
-
-      int idx = (ny * in.width + nx) * in.channels + c;
+      int idx = ((ny * in.width + nx) * in.channels) + c;
       sum += in.data[idx] * kernel[ky + 1][kx + 1];
     }
   }
@@ -68,7 +57,7 @@ bool KazennovaAImageSmoothSEQ::RunImpl() {
   for (int y = 0; y < in.height; ++y) {
     for (int x = 0; x < in.width; ++x) {
       for (int c = 0; c < in.channels; ++c) {
-        int idx = (y * in.width + x) * in.channels + c;
+        int idx = ((y * in.width + x) * in.channels) + c;
         out.data[idx] = ApplyKernelToPixel(x, y, c);
       }
     }

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 
@@ -18,7 +19,8 @@ class ImageSmoothPerfTest : public ppc::util::BaseRunPerfTests<InType, OutType> 
     input_data_.height = size;
     input_data_.channels = 1;
 
-    input_data_.data.resize(size * size * input_data_.channels);
+    input_data_.data.resize(static_cast<size_t>(size) * static_cast<size_t>(size) *
+                            static_cast<size_t>(input_data_.channels));
 
     for (int i = 0; i < size * size; ++i) {
       input_data_.data[i] = static_cast<uint8_t>(i % 256);
@@ -26,12 +28,8 @@ class ImageSmoothPerfTest : public ppc::util::BaseRunPerfTests<InType, OutType> 
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    if (output_data.width != input_data_.width || output_data.height != input_data_.height ||
-        output_data.channels != input_data_.channels || output_data.data.size() != input_data_.data.size()) {
-      return false;
-    }
-
-    return true;
+    return output_data.width == input_data_.width && output_data.height == input_data_.height &&
+           output_data.channels == input_data_.channels && output_data.data.size() == input_data_.data.size();
   }
 
   InType GetTestInputData() final {

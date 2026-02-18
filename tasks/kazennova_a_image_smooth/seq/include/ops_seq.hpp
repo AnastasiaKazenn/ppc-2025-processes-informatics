@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "kazennova_a_image_smooth/common/include/common.hpp"
 #include "task/include/task.hpp"
 
