@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <mpi.h>
 
 #include <array>
 #include <cstddef>
@@ -7,11 +8,8 @@
 #include <tuple>
 #include <vector>
 
-#include <mpi.h>
-
 #include "kazennova_a_image_smooth/common/include/common.hpp"
 #include "kazennova_a_image_smooth/mpi/include/ops_mpi.hpp"
-#include "kazennova_a_image_smooth/seq/include/ops_seq.hpp"
 #include "util/include/func_test_util.hpp"
 #include "util/include/util.hpp"
 
@@ -38,30 +36,28 @@ class ImageSmoothFuncTest : public ppc::util::BaseRunFuncTests<InType, OutType, 
   bool CheckTestOutputData(OutType &output_data) final {
     int world_rank = 0;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-    
+
     // Только процесс 0 проверяет данные
     if (world_rank != 0) {
       return true;
     }
-    
-    std::cout << "\n=== CheckTestOutputData (Process 0) ===" << std::endl;
+
+    std::cout << "\n=== CheckTestOutputData (Process 0) ===\n";
     std::cout << "Input data:  ";
     for (size_t i = 0; i < input_data_.data.size(); ++i) {
       std::cout << static_cast<int>(input_data_.data[i]) << " ";
     }
-    std::cout << std::endl;
-    
+    std::cout << "\n";
+
     std::cout << "Output data: ";
     for (size_t i = 0; i < output_data.data.size(); ++i) {
       std::cout << static_cast<int>(output_data.data[i]) << " ";
     }
-    std::cout << std::endl;
+    std::cout << "\n";
 
-    if (output_data.width != input_data_.width || 
-        output_data.height != input_data_.height ||
-        output_data.channels != input_data_.channels || 
-        output_data.data.size() != input_data_.data.size()) {
-      std::cout << "ERROR: Output data size mismatch!" << std::endl;
+    if (output_data.width != input_data_.width || output_data.height != input_data_.height ||
+        output_data.channels != input_data_.channels || output_data.data.size() != input_data_.data.size()) {
+      std::cout << "ERROR: Output data size mismatch!\n";
       return false;
     }
 
@@ -69,21 +65,20 @@ class ImageSmoothFuncTest : public ppc::util::BaseRunFuncTests<InType, OutType, 
     for (size_t i = 0; i < input_data_.data.size(); ++i) {
       if (input_data_.data[i] != output_data.data[i]) {
         if (!changed) {
-          std::cout << "Changes detected:" << std::endl;
+          std::cout << "Changes detected:\n";
           changed = true;
         }
-        std::cout << "  Position " << i << ": " 
-                  << static_cast<int>(input_data_.data[i]) << " -> " 
-                  << static_cast<int>(output_data.data[i]) << std::endl;
+        std::cout << "  Position " << i << ": " << static_cast<int>(input_data_.data[i]) << " -> "
+                  << static_cast<int>(output_data.data[i]) << "\n";
       }
     }
-    
+
     if (!changed) {
-      std::cout << "ERROR: Output data is identical to input data!" << std::endl;
+      std::cout << "ERROR: Output data is identical to input data!\n";
       return false;
     }
-    
-    std::cout << "SUCCESS: Output data changed from input" << std::endl;
+
+    std::cout << "SUCCESS: Output data changed from input\n";
     return true;
   }
 
@@ -100,12 +95,12 @@ namespace {
 TEST_P(ImageSmoothFuncTest, ImageSmoothTest) {
   int initialized = 0;
   MPI_Initialized(&initialized);
-  if (!initialized) {
+  if (initialized == 0) {
     MPI_Init(nullptr, nullptr);
   }
-  
+
   ExecuteTest(GetParam());
-  
+
   MPI_Barrier(MPI_COMM_WORLD);
 }
 
@@ -113,7 +108,6 @@ const std::array<TestType, 1> kTestParam = {std::make_tuple(1, "simple_4x4")};
 
 const auto kTestTasksList = std::tuple_cat(
     ppc::util::AddFuncTask<KazennovaAImageSmoothMPI, InType>(kTestParam, PPC_SETTINGS_kazennova_a_image_smooth));
-    // ppc::util::AddFuncTask<KazennovaAImageSmoothSEQ, InType>(kTestParam, PPC_SETTINGS_kazennova_a_image_smooth));
 
 const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
 

@@ -25,7 +25,7 @@ class KazennovaAImageSmoothMPI : public BaseTask {
   void ApplyKernelToStrip();
   void ExchangeBoundaries();
   void GatherResult();
-  uint8_t ApplyKernelToPixel(int local_y, int x, int c, const std::vector<uint8_t>& strip);
+  uint8_t ApplyKernelToPixel(int local_y, int x, int c, const std::vector<uint8_t> &strip);
 
   std::vector<uint8_t> local_strip_;
   std::vector<uint8_t> result_strip_;  // буфер для обработанной полосы
