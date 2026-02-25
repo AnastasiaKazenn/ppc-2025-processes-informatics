@@ -1,0 +1,32 @@
+#pragma once
+
+#include <vector>
+#include <cstdint>
+#include <tuple>
+#include <string>
+
+#include "task/include/task.hpp"
+
+namespace kazennova_a_convex_hull {
+
+struct Point {
+    double x, y;
+    
+    Point() : x(0.0), y(0.0) {}
+    Point(double x_, double y_) : x(x_), y(y_) {}
+    
+    bool operator==(const Point& other) const {
+        return x == other.x && y == other.y;
+    }
+    
+    bool operator<(const Point& other) const {
+        return (y < other.y) || (y == other.y && x < other.x);
+    }
+};
+
+using InType = std::vector<Point>;
+using OutType = std::vector<Point>;
+using TestType = std::tuple<int, std::string>;
+using BaseTask = ppc::task::Task<InType, OutType>;
+
+}  // namespace kazennova_a_convex_hull
