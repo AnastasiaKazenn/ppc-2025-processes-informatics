@@ -12,8 +12,8 @@ class KazennovaAConvexHullSEQ : public BaseTask {
   }
   explicit KazennovaAConvexHullSEQ(const InType &in);
 
-  static double DistSq(const Point& a, const Point& b);
-  static double Orientation(const Point& a, const Point& b, const Point& c);
+  static double DistSq(const Point &a, const Point &b);
+  static double Orientation(const Point &a, const Point &b, const Point &c);
 
  private:
   bool ValidationImpl() override;

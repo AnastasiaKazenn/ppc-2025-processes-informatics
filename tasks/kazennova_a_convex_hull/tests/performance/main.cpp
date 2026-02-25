@@ -25,7 +25,7 @@ class ExampleRunPerfTestKazennovaA : public ppc::util::BaseRunPerfTests<InType, 
   bool CheckTestOutputData(OutType &output_data) final {
     int world_rank = 0;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-    
+
     if (world_rank == 0) {
       return !output_data.empty();
     }
@@ -41,8 +41,8 @@ TEST_P(ExampleRunPerfTestKazennovaA, RunPerfModes) {
   ExecuteTest(GetParam());
 }
 
-const auto kAllPerfTasks =
-    ppc::util::MakeAllPerfTasks<InType, KazennovaAConvexHullMPI, KazennovaAConvexHullSEQ>(PPC_SETTINGS_example_processes_3);
+const auto kAllPerfTasks = ppc::util::MakeAllPerfTasks<InType, KazennovaAConvexHullMPI, KazennovaAConvexHullSEQ>(
+    PPC_SETTINGS_example_processes_3);
 
 const auto kGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
 
