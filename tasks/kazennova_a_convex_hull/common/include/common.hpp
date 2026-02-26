@@ -68,7 +68,7 @@ void SortQuick(std::vector<T> &a, int low, int high, Compare comp) {
   }
 
   std::stack<std::pair<int, int>> stack;
-  stack.push({low, high});
+  stack.emplace(low, high);
 
   while (!stack.empty()) {
     auto [l, h] = stack.top();
@@ -77,11 +77,11 @@ void SortQuick(std::vector<T> &a, int low, int high, Compare comp) {
     if (l < h) {
       int pi = Partition(a, l, h, comp);
       if (pi - l > h - pi) {
-        stack.push({l, pi - 1});
-        stack.push({pi + 1, h});
+        stack.emplace(l, pi - 1);
+        stack.emplace(pi + 1, h);
       } else {
-        stack.push({pi + 1, h});
-        stack.push({l, pi - 1});
+        stack.emplace(pi + 1, h);
+        stack.emplace(l, pi - 1);
       }
     }
   }
