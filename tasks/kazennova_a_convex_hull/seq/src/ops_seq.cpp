@@ -1,34 +1,31 @@
 #include "kazennova_a_convex_hull/seq/include/ops_seq.hpp"
 
 #include <algorithm>
-#include <cmath>
 #include <vector>
 
 namespace kazennova_a_convex_hull {
 
-// Вспомогательные функции
 double KazennovaAConvexHullSEQ::DistSq(const Point &a, const Point &b) {
   double dx = a.x - b.x;
   double dy = a.y - b.y;
-  return dx * dx + dy * dy;
+  return (dx * dx) + (dy * dy);
 }
 
 double KazennovaAConvexHullSEQ::Orientation(const Point &a, const Point &b, const Point &c) {
-  return (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x);
+  return ((b.x - a.x) * (c.y - b.y)) - ((b.y - a.y) * (c.x - b.x));
 }
 
-// Компаратор для сортировки по полярному углу
 class PolarAngleComparator {
  private:
-  const Point &pivot;
+  const Point *pivot_;
 
  public:
-  explicit PolarAngleComparator(const Point &p) : pivot(p) {}
+  explicit PolarAngleComparator(const Point &p) : pivot_(&p) {}
 
   bool operator()(const Point &a, const Point &b) const {
-    double orient = KazennovaAConvexHullSEQ::Orientation(pivot, a, b);
+    double orient = KazennovaAConvexHullSEQ::Orientation(*pivot_, a, b);
     if (orient == 0.0) {
-      return KazennovaAConvexHullSEQ::DistSq(pivot, a) < KazennovaAConvexHullSEQ::DistSq(pivot, b);
+      return KazennovaAConvexHullSEQ::DistSq(*pivot_, a) < KazennovaAConvexHullSEQ::DistSq(*pivot_, b);
     }
     return orient > 0.0;
   }
@@ -50,24 +47,20 @@ bool KazennovaAConvexHullSEQ::PreProcessingImpl() {
 }
 
 bool KazennovaAConvexHullSEQ::RunImpl() {
-  auto points = GetInput();  // копируем для изменений
+  auto points = GetInput();
 
-  // Случаи с малым числом точек
   if (points.size() <= 3) {
     GetOutput() = points;
     return true;
   }
 
-  // 1. Находим самую нижнюю-левую точку (pivot)
   auto pivot_it = std::min_element(points.begin(), points.end());
   Point pivot = *pivot_it;
   points.erase(pivot_it);
 
-  // 2. Сортируем по полярному углу относительно pivot
   PolarAngleComparator comp(pivot);
   std::sort(points.begin(), points.end(), comp);
 
-  // 3. Фильтруем коллинеарные точки (оставляем самую дальнюю)
   std::vector<Point> filtered;
   if (!points.empty()) {
     filtered.push_back(points[0]);

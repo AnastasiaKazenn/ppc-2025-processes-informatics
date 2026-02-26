@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "kazennova_a_convex_hull/common/include/common.hpp"
 #include "task/include/task.hpp"
 
@@ -12,7 +14,6 @@ class KazennovaAConvexHullMPI : public BaseTask {
   }
   explicit KazennovaAConvexHullMPI(const InType &in);
 
-  // Вспомогательные функции - public для доступа из компаратора
   static double DistSq(const Point &a, const Point &b);
   static double Orientation(const Point &a, const Point &b, const Point &c);
 
@@ -22,9 +23,8 @@ class KazennovaAConvexHullMPI : public BaseTask {
   bool RunImpl() override;
   bool PostProcessingImpl() override;
 
-  // MPI-специфичные функции
   void DistributePoints();
-  std::vector<Point> ComputeLocalHull(const std::vector<Point> &local_points);
+  std::vector<Point> ComputeLocalHull(const std::vector<Point> &local_points) const;
   std::vector<Point> GatherLocalHulls();
 
   std::vector<Point> local_points_;

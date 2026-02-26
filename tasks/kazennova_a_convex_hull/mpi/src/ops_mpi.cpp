@@ -3,35 +3,32 @@
 #include <mpi.h>
 
 #include <algorithm>
-#include <cmath>
 #include <cstddef>
 #include <vector>
 
 namespace kazennova_a_convex_hull {
 
-// Вспомогательные функции
 double KazennovaAConvexHullMPI::DistSq(const Point &a, const Point &b) {
   double dx = a.x - b.x;
   double dy = a.y - b.y;
-  return dx * dx + dy * dy;
+  return (dx * dx) + (dy * dy);
 }
 
 double KazennovaAConvexHullMPI::Orientation(const Point &a, const Point &b, const Point &c) {
-  return (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x);
+  return ((b.x - a.x) * (c.y - b.y)) - ((b.y - a.y) * (c.x - b.x));
 }
 
-// Компаратор для сортировки по полярному углу
 class PolarAngleComparator {
  private:
-  const Point &pivot;
+  const Point *pivot_;
 
  public:
-  explicit PolarAngleComparator(const Point &p) : pivot(p) {}
+  explicit PolarAngleComparator(const Point &p) : pivot_(&p) {}
 
   bool operator()(const Point &a, const Point &b) const {
-    double orient = KazennovaAConvexHullMPI::Orientation(pivot, a, b);
+    double orient = KazennovaAConvexHullMPI::Orientation(*pivot_, a, b);
     if (orient == 0.0) {
-      return KazennovaAConvexHullMPI::DistSq(pivot, a) < KazennovaAConvexHullMPI::DistSq(pivot, b);
+      return KazennovaAConvexHullMPI::DistSq(*pivot_, a) < KazennovaAConvexHullMPI::DistSq(*pivot_, b);
     }
     return orient > 0.0;
   }
@@ -55,19 +52,18 @@ bool KazennovaAConvexHullMPI::PreProcessingImpl() {
 
 void KazennovaAConvexHullMPI::DistributePoints() {
   const auto &all_points = GetInput();
-  int world_size, world_rank;
+  int world_size = 0;
+  int world_rank = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
   int total_points = static_cast<int>(all_points.size());
 
   if (world_rank == 0) {
-    // Рассылаем количество точек всем процессам
     for (int i = 1; i < world_size; ++i) {
       MPI_Send(&total_points, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
     }
 
-    // Распределяем точки поровну
     int base_size = total_points / world_size;
     int remainder = total_points % world_size;
 
@@ -76,46 +72,40 @@ void KazennovaAConvexHullMPI::DistributePoints() {
       int count = base_size + (i < remainder ? 1 : 0);
 
       if (i == 0) {
-        // Себе оставляем первую порцию
         local_points_.assign(all_points.begin(), all_points.begin() + count);
       } else {
-        // Отправляем остальным
-        MPI_Send(all_points.data() + start, count * sizeof(Point), MPI_BYTE, i, 1, MPI_COMM_WORLD);
+        int bytes_to_send = count * static_cast<int>(sizeof(Point));
+        MPI_Send(all_points.data() + start, bytes_to_send, MPI_BYTE, i, 1, MPI_COMM_WORLD);
       }
       start += count;
     }
   } else {
-    // Получаем количество точек от процесса 0
     MPI_Recv(&total_points, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-    // Вычисляем сколько точек нам достанется
     int base_size = total_points / world_size;
     int remainder = total_points % world_size;
     int count = base_size + (world_rank < remainder ? 1 : 0);
 
-    // Получаем точки
     local_points_.resize(count);
-    MPI_Recv(local_points_.data(), count * sizeof(Point), MPI_BYTE, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    int bytes_to_recv = count * static_cast<int>(sizeof(Point));
+    MPI_Recv(local_points_.data(), bytes_to_recv, MPI_BYTE, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
 }
 
-std::vector<Point> KazennovaAConvexHullMPI::ComputeLocalHull(const std::vector<Point> &points) {
+std::vector<Point> KazennovaAConvexHullMPI::ComputeLocalHull(const std::vector<Point> &points) const {
   if (points.size() <= 3) {
     return points;
   }
 
-  auto local_points = points;  // копируем для изменений
+  auto local_points = points;
 
-  // Находим самую нижнюю-левую точку (pivot)
   auto pivot_it = std::min_element(local_points.begin(), local_points.end());
   Point pivot = *pivot_it;
   local_points.erase(pivot_it);
 
-  // Сортируем по полярному углу
   PolarAngleComparator comp(pivot);
   std::sort(local_points.begin(), local_points.end(), comp);
 
-  // Фильтруем коллинеарные точки
   std::vector<Point> filtered;
   if (!local_points.empty()) {
     filtered.push_back(local_points[0]);
@@ -132,7 +122,6 @@ std::vector<Point> KazennovaAConvexHullMPI::ComputeLocalHull(const std::vector<P
     }
   }
 
-  // Строим выпуклую оболочку
   std::vector<Point> hull;
   hull.push_back(pivot);
 
@@ -160,22 +149,20 @@ std::vector<Point> KazennovaAConvexHullMPI::ComputeLocalHull(const std::vector<P
 }
 
 std::vector<Point> KazennovaAConvexHullMPI::GatherLocalHulls() {
-  int world_size, world_rank;
+  int world_size = 0;
+  int world_rank = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
-  // Сначала вычисляем локальную оболочку
   std::vector<Point> local_hull = ComputeLocalHull(local_points_);
   int local_size = static_cast<int>(local_hull.size());
 
   std::vector<Point> all_hull_points;
 
   if (world_rank == 0) {
-    // Собираем размеры от всех процессов
     std::vector<int> sizes(world_size);
     MPI_Gather(&local_size, 1, MPI_INT, sizes.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    // Вычисляем смещения
     std::vector<int> displs(world_size, 0);
     int total_size = sizes[0];
     for (int i = 1; i < world_size; ++i) {
@@ -183,44 +170,37 @@ std::vector<Point> KazennovaAConvexHullMPI::GatherLocalHulls() {
       total_size += sizes[i];
     }
 
-    // Подготавливаем буфер для всех точек
     all_hull_points.resize(total_size);
 
-    // Копируем свою локальную оболочку
     std::copy(local_hull.begin(), local_hull.end(), all_hull_points.begin());
 
-    // Собираем данные от всех процессов
     for (int i = 1; i < world_size; ++i) {
-      MPI_Recv(all_hull_points.data() + displs[i], sizes[i] * sizeof(Point), MPI_BYTE, i, 2, MPI_COMM_WORLD,
-               MPI_STATUS_IGNORE);
+      int bytes_to_recv = sizes[i] * static_cast<int>(sizeof(Point));
+      MPI_Recv(all_hull_points.data() + displs[i], bytes_to_recv, MPI_BYTE, i, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
   } else {
-    // Отправляем размер и данные процессу 0
     MPI_Gather(&local_size, 1, MPI_INT, nullptr, 0, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Send(local_hull.data(), local_size * sizeof(Point), MPI_BYTE, 0, 2, MPI_COMM_WORLD);
+    int bytes_to_send = local_size * static_cast<int>(sizeof(Point));
+    MPI_Send(local_hull.data(), bytes_to_send, MPI_BYTE, 0, 2, MPI_COMM_WORLD);
   }
 
   return all_hull_points;
 }
 
 bool KazennovaAConvexHullMPI::RunImpl() {
-  // Распределяем точки между процессами
   DistributePoints();
 
-  // Собираем все локальные оболочки на процессе 0
   std::vector<Point> all_hull_points = GatherLocalHulls();
 
-  int world_rank;
+  int world_rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
   if (world_rank == 0) {
-    // Если точек мало, просто возвращаем их
     if (all_hull_points.size() <= 3) {
       GetOutput() = all_hull_points;
       return true;
     }
 
-    // Строим финальную оболочку из всех точек локальных оболочек
     GetOutput() = ComputeLocalHull(all_hull_points);
   }
 
@@ -229,7 +209,7 @@ bool KazennovaAConvexHullMPI::RunImpl() {
 }
 
 bool KazennovaAConvexHullMPI::PostProcessingImpl() {
-  int world_rank;
+  int world_rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
   if (world_rank == 0) {

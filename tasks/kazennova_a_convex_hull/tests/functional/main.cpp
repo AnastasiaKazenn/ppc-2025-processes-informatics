@@ -2,15 +2,13 @@
 #include <mpi.h>
 #include <stb/stb_image.h>
 
-#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <numeric>
+#include <random>
 #include <stdexcept>
 #include <string>
 #include <tuple>
-#include <utility>
 #include <vector>
 
 #include "kazennova_a_convex_hull/common/include/common.hpp"
@@ -33,7 +31,7 @@ class KazennovaARunFuncTestsProcesses3 : public ppc::util::BaseRunFuncTests<InTy
     int height = -1;
     int channels = -1;
     std::vector<uint8_t> img;
-    // Read image in RGB to ensure consistent channel count
+
     {
       std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_kazennova_a_convex_hull, "pic.jpg");
       auto *data = stbi_load(abs_path.c_str(), &width, &height, &channels, STBI_rgb);
@@ -44,21 +42,24 @@ class KazennovaARunFuncTestsProcesses3 : public ppc::util::BaseRunFuncTests<InTy
       img = std::vector<uint8_t>(data, data + (static_cast<ptrdiff_t>(width * height * channels)));
       stbi_image_free(data);
       if (std::cmp_not_equal(width, height)) {
-        throw std::runtime_error("width != height: ");
+        throw std::runtime_error("width != height");
       }
     }
 
     TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
 
-    // Создаем тестовый набор точек на основе изображения
     int num_points = std::get<0>(params);
     input_data_.clear();
 
-    // Генерируем случайные точки в пределах изображения
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib_x(0, width - 1);
+    std::uniform_int_distribution<> distrib_y(0, height - 1);
+
     for (int i = 0; i < num_points; ++i) {
-      double x = rand() % width;
-      double y = rand() % height;
-      input_data_.push_back(Point(x, y));
+      double x = static_cast<double>(distrib_x(gen));
+      double y = static_cast<double>(distrib_y(gen));
+      input_data_.emplace_back(x, y);
     }
   }
 

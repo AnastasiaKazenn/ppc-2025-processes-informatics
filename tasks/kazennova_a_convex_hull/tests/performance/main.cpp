@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 #include <mpi.h>
 
+#include <random>
+#include <vector>
+
 #include "kazennova_a_convex_hull/common/include/common.hpp"
 #include "kazennova_a_convex_hull/mpi/include/ops_mpi.hpp"
 #include "kazennova_a_convex_hull/seq/include/ops_seq.hpp"
@@ -10,15 +13,19 @@ namespace kazennova_a_convex_hull {
 
 class ExampleRunPerfTestKazennovaA : public ppc::util::BaseRunPerfTests<InType, OutType> {
   const int kNumPoints_ = 1000;
-  InType input_data_{};
+  InType input_data_;
 
   void SetUp() override {
-    // Создаем большой тестовый набор точек
     input_data_.clear();
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, 999);
+
     for (int i = 0; i < kNumPoints_; ++i) {
-      double x = rand() % 1000;
-      double y = rand() % 1000;
-      input_data_.push_back(Point(x, y));
+      double x = static_cast<double>(distrib(gen));
+      double y = static_cast<double>(distrib(gen));
+      input_data_.emplace_back(x, y);
     }
   }
 
