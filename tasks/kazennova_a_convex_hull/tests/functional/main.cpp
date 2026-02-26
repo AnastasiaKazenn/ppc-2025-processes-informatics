@@ -88,13 +88,12 @@ TEST_P(KazennovaARunFuncTestsProcesses3, ConvexHullFromPic) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 3> kTestParam = {std::make_tuple(10, "10_points"),
-                                            std::make_tuple(50, "50_points"),
+const std::array<TestType, 3> kTestParam = {std::make_tuple(10, "10_points"), std::make_tuple(50, "50_points"),
                                             std::make_tuple(100, "100_points")};
 
-const auto kTestTasksList =
-    std::tuple_cat(ppc::util::AddFuncTask<KazennovaAConvexHullMPI, InType>(kTestParam, PPC_SETTINGS_example_processes_3),
-                   ppc::util::AddFuncTask<KazennovaAConvexHullSEQ, InType>(kTestParam, PPC_SETTINGS_example_processes_3));
+const auto kTestTasksList = std::tuple_cat(
+    ppc::util::AddFuncTask<KazennovaAConvexHullMPI, InType>(kTestParam, PPC_SETTINGS_example_processes_3),
+    ppc::util::AddFuncTask<KazennovaAConvexHullSEQ, InType>(kTestParam, PPC_SETTINGS_example_processes_3));
 
 const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
 
