@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "kazennova_a_convex_hull/common/include/common.hpp"
 #include "task/include/task.hpp"
 

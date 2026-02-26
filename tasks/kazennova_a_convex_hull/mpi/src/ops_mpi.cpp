@@ -2,8 +2,8 @@
 
 #include <mpi.h>
 
-#include <algorithm>
 #include <cstddef>
+#include <ranges>
 #include <vector>
 
 #include "kazennova_a_convex_hull/common/include/common.hpp"
@@ -147,12 +147,12 @@ std::vector<Point> KazennovaAConvexHullMPI::ComputeLocalHull(const std::vector<P
     }
     
     auto local_points = points;
-    auto pivot_it = std::min_element(local_points.begin(), local_points.end());
+    auto pivot_it = std::ranges::min_element(local_points);  // ranges-версия
     Point pivot = *pivot_it;
     local_points.erase(pivot_it);
     
     PolarAngleComparator comp(pivot);
-    std::sort(local_points.begin(), local_points.end(), comp);
+    std::ranges::sort(local_points, comp);  // ranges-версия
     
     auto filtered = FilterCollinearPoints(pivot, local_points);
     return BuildHull(pivot, filtered);
@@ -182,7 +182,7 @@ std::vector<Point> KazennovaAConvexHullMPI::GatherLocalHulls() {
         
         all_hull_points.resize(total_size);
         
-        std::copy(local_hull.begin(), local_hull.end(), all_hull_points.begin());
+        std::ranges::copy(local_hull, all_hull_points.begin());  // ranges-версия
         
         for (int i = 1; i < world_size; ++i) {
             int bytes_to_recv = sizes[i] * static_cast<int>(sizeof(Point));

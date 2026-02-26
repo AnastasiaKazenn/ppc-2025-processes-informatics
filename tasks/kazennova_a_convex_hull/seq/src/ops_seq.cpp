@@ -1,7 +1,7 @@
 #include "kazennova_a_convex_hull/seq/include/ops_seq.hpp"
 
-#include <algorithm>
 #include <cstddef>
+#include <ranges>
 #include <vector>
 
 #include "kazennova_a_convex_hull/common/include/common.hpp"
@@ -104,12 +104,12 @@ bool KazennovaAConvexHullSEQ::RunImpl() {
         return true;
     }
 
-    auto pivot_it = std::min_element(points.begin(), points.end());
+    auto pivot_it = std::ranges::min_element(points);  // ranges-версия
     Point pivot = *pivot_it;
     points.erase(pivot_it);
 
     PolarAngleComparator comp(pivot);
-    std::sort(points.begin(), points.end(), comp);
+    std::ranges::sort(points, comp);  // ranges-версия
 
     auto filtered = FilterCollinearPoints(pivot, points);
     GetOutput() = BuildHull(pivot, filtered);
