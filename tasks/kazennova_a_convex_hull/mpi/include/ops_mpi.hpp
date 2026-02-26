@@ -24,7 +24,7 @@ class KazennovaAConvexHullMPI : public BaseTask {
   bool PostProcessingImpl() override;
 
   void DistributePoints();
-  std::vector<Point> ComputeLocalHull(const std::vector<Point> &local_points) const;
+  [[nodiscard]] std::vector<Point> ComputeLocalHull(const std::vector<Point> &local_points) const;
   std::vector<Point> GatherLocalHulls();
 
   std::vector<Point> local_points_;

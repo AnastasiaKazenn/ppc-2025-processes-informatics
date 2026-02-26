@@ -1,7 +1,10 @@
 #include "kazennova_a_convex_hull/seq/include/ops_seq.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <vector>
+
+#include "kazennova_a_convex_hull/common/include/common.hpp"
 
 namespace kazennova_a_convex_hull {
 

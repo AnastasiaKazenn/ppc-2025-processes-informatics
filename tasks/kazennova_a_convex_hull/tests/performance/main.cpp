@@ -2,7 +2,6 @@
 #include <mpi.h>
 
 #include <random>
-#include <vector>
 
 #include "kazennova_a_convex_hull/common/include/common.hpp"
 #include "kazennova_a_convex_hull/mpi/include/ops_mpi.hpp"

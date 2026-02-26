@@ -6,6 +6,8 @@
 #include <cstddef>
 #include <vector>
 
+#include "kazennova_a_convex_hull/common/include/common.hpp"
+
 namespace kazennova_a_convex_hull {
 
 double KazennovaAConvexHullMPI::DistSq(const Point &a, const Point &b) {
