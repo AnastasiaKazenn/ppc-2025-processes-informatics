@@ -29,13 +29,16 @@ class ExampleRunPerfTestKazennovaA : public ppc::util::BaseRunPerfTests<InType, 
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    int world_rank = 0;
-    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-
-    if (world_rank == 0) {
-      return !output_data.empty();
+    int initialized = 0;
+    MPI_Initialized(&initialized);
+    if (initialized) {
+        int world_rank = 0;
+        MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+        if (world_rank != 0) {
+            return true;
+        }
     }
-    return true;
+    return !output_data.empty();
   }
 
   InType GetTestInputData() final {
