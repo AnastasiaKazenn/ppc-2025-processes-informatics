@@ -2,7 +2,6 @@
 
 #include <mpi.h>
 
-#include <algorithm>
 #include <cstddef>
 #include <vector>
 
@@ -147,12 +146,16 @@ std::vector<Point> KazennovaAConvexHullMPI::ComputeLocalHull(const std::vector<P
   }
 
   auto local_points = points;
-  auto pivot_it = std::min_element(local_points.begin(), local_points.end());  // NOLINT
-  Point pivot = *pivot_it;
-  local_points.erase(pivot_it);
 
-  PolarAngleComparator comp(pivot);
-  std::sort(local_points.begin(), local_points.end(), comp);  // NOLINT
+  size_t pivot_idx = FindMinIndex(local_points);
+  Point pivot = local_points[pivot_idx];
+  local_points.erase(local_points.begin() + static_cast<ptrdiff_t>(pivot_idx));
+
+  auto polar_comp = [&pivot](const Point &a, const Point &b) { return PolarAngle(pivot, a, b); };
+
+  if (!local_points.empty()) {
+    SortQuick(local_points, 0, static_cast<int>(local_points.size()) - 1, polar_comp);
+  }
 
   auto filtered = FilterCollinearPoints(pivot, local_points);
   return BuildHull(pivot, filtered);
@@ -182,7 +185,7 @@ std::vector<Point> KazennovaAConvexHullMPI::GatherLocalHulls() {
 
     all_hull_points.resize(total_size);
 
-    std::copy(local_hull.begin(), local_hull.end(), all_hull_points.begin());  // NOLINT
+    CopyElements(local_hull, all_hull_points, 0);
 
     for (int i = 1; i < world_size; ++i) {
       int bytes_to_recv = sizes[i] * static_cast<int>(sizeof(Point));

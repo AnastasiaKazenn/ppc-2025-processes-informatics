@@ -24,9 +24,9 @@ class KazennovaAConvexHullMPI : public BaseTask {
   bool PostProcessingImpl() override;
 
   void DistributePoints();
-  static std::vector<Point> ComputeLocalHull(const std::vector<Point> &points);
   static std::vector<Point> FilterCollinearPoints(const Point &pivot, std::vector<Point> &points);
   static std::vector<Point> BuildHull(const Point &pivot, const std::vector<Point> &filtered);
+  static std::vector<Point> ComputeLocalHull(const std::vector<Point> &points);
   std::vector<Point> GatherLocalHulls();
 
   std::vector<Point> local_points_;

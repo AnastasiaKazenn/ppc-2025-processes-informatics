@@ -103,22 +103,14 @@ bool KazennovaAConvexHullSEQ::RunImpl() {
     return true;
   }
 
-  // Находим pivot вручную
-  size_t pivot_idx = 0;
-  for (size_t i = 1; i < points.size(); ++i) {
-    if (points[i].y < points[pivot_idx].y ||
-        (points[i].y == points[pivot_idx].y && points[i].x < points[pivot_idx].x)) {
-      pivot_idx = i;
-    }
-  }
+  size_t pivot_idx = FindMinIndex(points);
   Point pivot = points[pivot_idx];
   points.erase(points.begin() + static_cast<ptrdiff_t>(pivot_idx));
 
-  // Сортируем по полярному углу с помощью вашей быстрой сортировки
-  auto polar_comp = [&pivot](const Point &a, const Point &b) { return polar_angle(pivot, a, b); };
+  auto polar_comp = [&pivot](const Point &a, const Point &b) { return PolarAngle(pivot, a, b); };
 
   if (!points.empty()) {
-    sort_quick(points, 0, static_cast<int>(points.size()) - 1, polar_comp);
+    SortQuick(points, 0, static_cast<int>(points.size()) - 1, polar_comp);
   }
 
   auto filtered = FilterCollinearPoints(pivot, points);

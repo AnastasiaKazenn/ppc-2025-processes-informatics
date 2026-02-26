@@ -26,6 +26,7 @@ struct Point {
   }
 };
 
+// Вспомогательные функции
 inline double DistSq(const Point &a, const Point &b) {
   double dx = a.x - b.x;
   double dy = a.y - b.y;
@@ -44,6 +45,7 @@ inline bool PolarAngle(const Point &pivot, const Point &a, const Point &b) {
   return orient > 0;
 }
 
+// Итеративная быстрая сортировка (без рекурсии)
 template <typename T, typename Compare>
 int Partition(std::vector<T> &a, int low, int high, Compare comp) {
   T pivot = a[high];
@@ -61,6 +63,10 @@ int Partition(std::vector<T> &a, int low, int high, Compare comp) {
 
 template <typename T, typename Compare>
 void SortQuick(std::vector<T> &a, int low, int high, Compare comp) {
+  if (low >= high) {
+    return;
+  }
+
   std::stack<std::pair<int, int>> stack;
   stack.push({low, high});
 
@@ -81,6 +87,7 @@ void SortQuick(std::vector<T> &a, int low, int high, Compare comp) {
   }
 }
 
+// Поиск минимального элемента
 template <typename T>
 size_t FindMinIndex(const std::vector<T> &a) {
   size_t min_idx = 0;
@@ -92,6 +99,7 @@ size_t FindMinIndex(const std::vector<T> &a) {
   return min_idx;
 }
 
+// Копирование элементов
 template <typename T>
 void CopyElements(const std::vector<T> &src, std::vector<T> &dst, size_t dst_start) {
   for (size_t i = 0; i < src.size(); ++i) {
