@@ -22,8 +22,8 @@ class ExampleRunPerfTestKazennovaA : public ppc::util::BaseRunPerfTests<InType, 
     std::uniform_int_distribution<> distrib(0, 999);
 
     for (int i = 0; i < kNumPoints_; ++i) {
-      double x = static_cast<double>(distrib(gen));
-      double y = static_cast<double>(distrib(gen));
+      auto x = static_cast<double>(distrib(gen));
+      auto y = static_cast<double>(distrib(gen));
       input_data_.emplace_back(x, y);
     }
   }
@@ -47,8 +47,8 @@ TEST_P(ExampleRunPerfTestKazennovaA, RunPerfModes) {
   ExecuteTest(GetParam());
 }
 
-const auto kAllPerfTasks = ppc::util::MakeAllPerfTasks<InType, KazennovaAConvexHullMPI, KazennovaAConvexHullSEQ>(
-    PPC_SETTINGS_example_processes_3);
+const auto kAllPerfTasks =
+    ppc::util::MakeAllPerfTasks<InType, KazennovaAConvexHullMPI, KazennovaAConvexHullSEQ>(PPC_SETTINGS_example_processes_3);
 
 const auto kGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
 

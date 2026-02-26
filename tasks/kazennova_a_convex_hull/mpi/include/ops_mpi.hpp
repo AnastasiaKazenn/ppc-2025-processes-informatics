@@ -14,19 +14,21 @@ class KazennovaAConvexHullMPI : public BaseTask {
   }
   explicit KazennovaAConvexHullMPI(const InType &in);
 
-  static double DistSq(const Point &a, const Point &b);
-  static double Orientation(const Point &a, const Point &b, const Point &c);
+  static double DistSq(const Point& a, const Point& b);
+  static double Orientation(const Point& a, const Point& b, const Point& c);
 
  private:
   bool ValidationImpl() override;
   bool PreProcessingImpl() override;
   bool RunImpl() override;
   bool PostProcessingImpl() override;
-
+  
   void DistributePoints();
-  [[nodiscard]] std::vector<Point> ComputeLocalHull(const std::vector<Point> &local_points) const;
+  static std::vector<Point> ComputeLocalHull(const std::vector<Point>& points);
+  static std::vector<Point> FilterCollinearPoints(const Point& pivot, std::vector<Point>& points);
+  static std::vector<Point> BuildHull(const Point& pivot, const std::vector<Point>& filtered);
   std::vector<Point> GatherLocalHulls();
-
+  
   std::vector<Point> local_points_;
 };
 
